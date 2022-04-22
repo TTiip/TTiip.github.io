@@ -1,0 +1,403 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Hexirs">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="实现 effect 的 stop 功能在本小节中，我们去实现 effect 的 stop 功能 1. stop 的测试样例1234567891011121314151617it(&amp;#x27;stop&amp;#x27;, () &#x3D;&gt; &amp;#123;    let dummy    const obj &#x3D; reactive(&amp;#123; prop: 1 &amp;#125;)    const runner &#x3D;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="04 - 实现 effect 的 stop 功能">
+<meta property="og:url" content="http://example.com/2022/03/12/4.%20%E5%AE%9E%E7%8E%B0%20effect%20%E7%9A%84%20stop%20%E5%8A%9F%E8%83%BD/index.html">
+<meta property="og:site_name" content="Hexirs&#39; blog">
+<meta property="og:description" content="实现 effect 的 stop 功能在本小节中，我们去实现 effect 的 stop 功能 1. stop 的测试样例1234567891011121314151617it(&amp;#x27;stop&amp;#x27;, () &#x3D;&gt; &amp;#123;    let dummy    const obj &#x3D; reactive(&amp;#123; prop: 1 &amp;#125;)    const runner &#x3D;">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-11T18:26:27.000Z">
+<meta property="article:modified_time" content="2022-03-12T17:38:27.000Z">
+<meta property="article:author" content="Hexirs">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  <title>04 - 实现 effect 的 stop 功能 - Hexirs&#39; blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>HEXirs&#39;</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/bg/banner.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.6)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="04 - 实现 effect 的 stop 功能">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      本文共 3.6k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      预计阅读 30 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">04 - 实现 effect 的 stop 功能</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：2022年3月13日 凌晨
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h1 id="实现-effect-的-stop-功能"><a href="#实现-effect-的-stop-功能" class="headerlink" title="实现 effect 的 stop 功能"></a>实现 effect 的 stop 功能</h1><p>在本小节中，我们去实现 effect 的 stop 功能</p>
+<h2 id="1-stop-的测试样例"><a href="#1-stop-的测试样例" class="headerlink" title="1. stop 的测试样例"></a>1. stop 的测试样例</h2><figure class="highlight ts"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></div></td><td class="code"><pre><code class="hljs ts"><span class="hljs-title function_">it</span>(<span class="hljs-string">&#x27;stop&#x27;</span>, <span class="hljs-function">() =&gt;</span> &#123;<br>    <span class="hljs-keyword">let</span> dummy<br>    <span class="hljs-keyword">const</span> obj = <span class="hljs-title function_">reactive</span>(&#123; <span class="hljs-attr">prop</span>: <span class="hljs-number">1</span> &#125;)<br>    <span class="hljs-keyword">const</span> runner = <span class="hljs-title function_">effect</span>(<span class="hljs-function">() =&gt;</span> &#123;<br>        dummy = obj.<span class="hljs-property">prop</span><br>    &#125;)<br>    obj.<span class="hljs-property">prop</span> = <span class="hljs-number">2</span><br>    <span class="hljs-title function_">expect</span>(dummy).<span class="hljs-title function_">toBe</span>(<span class="hljs-number">2</span>)<br>    <span class="hljs-comment">// stop 一个 runner 之后</span><br>    <span class="hljs-title function_">stop</span>(runner)<br>    obj.<span class="hljs-property">prop</span>++<br>    <span class="hljs-comment">// 依赖再次更新，当时传入的 effect 则不会重新执行</span><br>    <span class="hljs-title function_">expect</span>(dummy).<span class="hljs-title function_">toBe</span>(<span class="hljs-number">2</span>)<br>    <span class="hljs-comment">// runner 不受到影响</span><br>    <span class="hljs-title function_">runner</span>()<br>    <span class="hljs-title function_">expect</span>(dummy).<span class="hljs-title function_">toBe</span>(<span class="hljs-number">3</span>)<br>&#125;)<br></code></pre></td></tr></table></figure>
+
+<p>通过一个测试样例，我们发现其实也是非常简单的</p>
+<h2 id="2-实现-stop"><a href="#2-实现-stop" class="headerlink" title="2. 实现 stop"></a>2. 实现 stop</h2><p>首先，我们知道所有的 effect 存在 deps 中，也就是我们的 effects 是在 <code>track</code> 方法进行保存的，那么如果不想让这个 effect 执行，就可以找到 target - key 对应的 deps 中，删除掉我们的 effect 即可。</p>
+<p>首先，我们在 ReactiveEffect 实例中去记录我们反向对应的 deps</p>
+<h3 id="2-1-v1"><a href="#2-1-v1" class="headerlink" title="2.1 v1"></a>2.1 v1</h3><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs ts"><span class="hljs-comment">// effect.ts</span><br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">ReactiveEffect</span> &#123;<br>  <span class="hljs-comment">// [stop] 反向记录自己对应的 dep 那个 set</span><br>  deps = []<br>  <span class="hljs-comment">// other code</span><br>&#125;<br><br><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">track</span>(<span class="hljs-params">target, key</span>) &#123;<br>  <span class="hljs-comment">// other code ...</span><br>  dep.<span class="hljs-title function_">add</span>(activeEffect)<br>  <span class="hljs-comment">// [stop]：反向追踪 activeEffect 的 dep</span><br>  <span class="hljs-comment">// 因为一个 activeEffect 可能会对应多个 dep，每个 dep 是一个 set</span><br>  <span class="hljs-comment">// 这里我们可以使用一个数组</span><br>  activeEffect.<span class="hljs-property">deps</span>.<span class="hljs-title function_">push</span>(dep)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>然后我们可以去实现一个 stop 的实例方法</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs ts"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ReactiveEffect</span> &#123;<br>  <span class="hljs-comment">// other code ...</span><br>  <span class="hljs-comment">// [stop] 这个方法的作用就是去根据 this.deps 删除 this 对应的 effect</span><br>  <span class="hljs-title function_">stop</span>(<span class="hljs-params"></span>) &#123;<br>    <span class="hljs-variable language_">this</span>.<span class="hljs-property">deps</span>.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">dep: <span class="hljs-built_in">any</span></span>) =&gt;</span> &#123;<br>      dep.<span class="hljs-title function_">delete</span>(<span class="hljs-variable language_">this</span>)<br>    &#125;)<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这样我们就可以去实现一个 stop 方法了</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs ts"><span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">stop</span>(<span class="hljs-params">runner</span>) &#123;<br>  <span class="hljs-comment">// [stop] 如何获取到当前所属的 effect 实例呢？</span><br>  <span class="hljs-comment">// 这样就可以去调用 stop 方法了</span><br>  runner.<span class="hljs-property">effect</span>.<span class="hljs-title function_">stop</span>()<br>&#125;<br><br><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">effect</span>(<span class="hljs-params">fn, options: <span class="hljs-built_in">any</span> = &#123;&#125;</span>) &#123;<br>  <span class="hljs-comment">// other code</span><br>  <span class="hljs-keyword">const</span> <span class="hljs-attr">runner</span>: <span class="hljs-built_in">any</span> = _effect.<span class="hljs-property">run</span>.<span class="hljs-title function_">bind</span>(_effect)<br>  <span class="hljs-comment">// [stop] 在这里挂载一下所属的 effect</span><br>  runner.<span class="hljs-property">effect</span> = _effect<br>  <span class="hljs-keyword">return</span> runner<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-2-v2"><a href="#2-2-v2" class="headerlink" title="2.2 v2"></a>2.2 v2</h3><p>但是我们在运行完单测后会出现问题，这是因为如果使用上面的方法的话，会存在重复收集的问题，例如我们在 stop 后，此时所属的 effect 其实已经清空过了，但是下面我们又对依赖项进行了 getter，也就是 track，那么就会再次将所属的 track 收集起来，那么 stop 删除的元素就等于是重新就加回来了，所以我们需要修改一下代码，加一个状态；</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs ts"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ReactiveEffect</span> &#123;<br>  <span class="hljs-comment">// [stop] 该 effect 是否调用过 stop 方法了</span><br>  <span class="hljs-comment">// true 未调用 false 调用</span><br>  active = <span class="hljs-literal">true</span><br><br>  <span class="hljs-title function_">stop</span>(<span class="hljs-params"></span>) &#123;<br>    <span class="hljs-comment">// 如果没调用这个方法，去清空所属的 effect</span><br>    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">active</span>) &#123;<br>      <span class="hljs-variable language_">this</span>.<span class="hljs-property">deps</span>.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">dep: <span class="hljs-built_in">any</span></span>) =&gt;</span> &#123;<br>        dep.<span class="hljs-title function_">delete</span>(<span class="hljs-variable language_">this</span>)<br>      &#125;)<br>      <span class="hljs-variable language_">this</span>.<span class="hljs-property">active</span> = <span class="hljs-literal">false</span><br>    &#125;<br>  &#125;<br>&#125;<br><br><br><span class="hljs-comment">// track 的代码也要改一下</span><br><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">track</span>(<span class="hljs-params">target, key</span>) &#123;<br>  <span class="hljs-comment">// 如果该 activeEffect 还没有调用 stop 方法的时候，再去添加依赖和反向收集依赖</span><br>  <span class="hljs-keyword">if</span> (activeEffect.<span class="hljs-property">active</span>) &#123;<br>    activeEffect.<span class="hljs-property">deps</span>.<span class="hljs-title function_">push</span>(dep)<br>    dep.<span class="hljs-title function_">add</span>(activeEffect)<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>此时我们再去运行单元测试发现就没问题了</p>
+<p>后面我们就可以去优化了，例如将删除依赖的函数作为单独的函数</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs ts"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ReactiveEffect</span> &#123;<br>  <span class="hljs-title function_">stop</span>(<span class="hljs-params"></span>) &#123;<br>    <span class="hljs-title function_">cleanupEffect</span>(<span class="hljs-variable language_">this</span>)<br>  &#125;<br>&#125;<br><br><span class="hljs-comment">// 把清除的逻辑单独作为函数</span><br><span class="hljs-keyword">function</span> <span class="hljs-title function_">cleanupEffect</span>(<span class="hljs-params">effect</span>) &#123;<br>  <span class="hljs-keyword">if</span> (effect.<span class="hljs-property">active</span>) &#123;<br>    effect.<span class="hljs-property">deps</span>.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">dep: <span class="hljs-built_in">any</span></span>) =&gt;</span> &#123;<br>      dep.<span class="hljs-title function_">delete</span>(effect)<br>    &#125;)<br>    effect.<span class="hljs-property">active</span> = <span class="hljs-literal">false</span><br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="3-onStop-的测试样例"><a href="#3-onStop-的测试样例" class="headerlink" title="3. onStop 的测试样例"></a>3. onStop 的测试样例</h2><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs ts"><span class="hljs-title function_">it</span>(<span class="hljs-string">&#x27;onStop&#x27;</span>, <span class="hljs-function">() =&gt;</span> &#123;<br>    <span class="hljs-keyword">const</span> obj = <span class="hljs-title function_">reactive</span>(&#123;<br>        <span class="hljs-attr">foo</span>: <span class="hljs-number">1</span>,<br>    &#125;)<br>    <span class="hljs-keyword">const</span> onStop = jest.<span class="hljs-title function_">fn</span>()<br>    <span class="hljs-keyword">let</span> dummy<br>    <span class="hljs-comment">// onStop 是一个函数，也是 effect 的 option</span><br>    <span class="hljs-keyword">const</span> runner = <span class="hljs-title function_">effect</span>(<br>        <span class="hljs-function">() =&gt;</span> &#123;<br>            dummy = obj.<span class="hljs-property">foo</span><br>        &#125;,<br>        &#123;<br>            onStop,<br>        &#125;<br>    )<br>    <span class="hljs-comment">// 在调用 stop 的时候，onStop 也会执行</span><br>    <span class="hljs-title function_">stop</span>(runner)<br>    <span class="hljs-title function_">expect</span>(onStop).<span class="hljs-title function_">toBeCalledTimes</span>(<span class="hljs-number">1</span>)<br>&#125;)<br></code></pre></td></tr></table></figure>
+
+<h2 id="4-实现-onStop"><a href="#4-实现-onStop" class="headerlink" title="4. 实现 onStop"></a>4. 实现 onStop</h2><figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs ts"><span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">effect</span>(<span class="hljs-params">fn, options: <span class="hljs-built_in">any</span> = &#123;&#125;</span>) &#123;<br>  <span class="hljs-keyword">const</span> _effect = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReactiveEffect</span>(fn, options)<br>  <span class="hljs-comment">// [stop] 这里我们 options 会接收一个 onStop 方法</span><br>  <span class="hljs-comment">// 其实我们可以将 options 中的所有数据全部挂载在 effect 上面</span><br>  <span class="hljs-comment">// extend = Object.assign 封装一下是为了语义化更好</span><br>  <span class="hljs-title function_">extend</span>(_effect, options)<br>  <span class="hljs-comment">// other code ...</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs ts"><span class="hljs-comment">// ./src/shared/index.ts</span><br><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> extend = <span class="hljs-title class_">Object</span>.<span class="hljs-property">assign</span><br></code></pre></td></tr></table></figure>
+
+<p>今后该项目中全局可用的工具函数可以放在 <code>shared</code> 目录下，这个也是为了与 <code>Vue</code> 的开发方式贴近</p>
+<p>然后在清除的函数中去判断并执行</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs ts"><span class="hljs-keyword">function</span> <span class="hljs-title function_">cleanupEffect</span>(<span class="hljs-params">effect</span>) &#123;<br>  <span class="hljs-keyword">if</span> (effect.<span class="hljs-property">active</span>) &#123;<br>    effect.<span class="hljs-property">deps</span>.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">dep: <span class="hljs-built_in">any</span></span>) =&gt;</span> &#123;<br>      dep.<span class="hljs-title function_">delete</span>(effect)<br>    &#125;)<br>    <span class="hljs-comment">// [onStop] 如果存在 onStop，就去运行 onStop</span><br>    <span class="hljs-keyword">if</span> (effect.<span class="hljs-property">onStop</span>) effect.<span class="hljs-title function_">onStop</span>()<br>    effect.<span class="hljs-property">active</span> = <span class="hljs-literal">false</span><br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>跑一下测试，发现也是可以通过的</p>
+<h2 id="5-修复-happy-path-bug"><a href="#5-修复-happy-path-bug" class="headerlink" title="5. 修复 happy path bug"></a>5. 修复 happy path bug</h2><p>这个时候我们再全局跑一下所有测试，发现在 <code>effect</code> 的 happy path 中出现了错误</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs ts"><span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">track</span>(<span class="hljs-params">target, key</span>) &#123;<br>  <span class="hljs-comment">// 这一行找不到 activeEffect</span><br>  <span class="hljs-keyword">if</span> (activeEffect.<span class="hljs-property">active</span>) &#123;<br>    activeEffect.<span class="hljs-property">deps</span>.<span class="hljs-title function_">push</span>(dep)<br>    dep.<span class="hljs-title function_">add</span>(activeEffect)<br>  &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>改成下面这样就可以了</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ts"><span class="hljs-keyword">if</span> (activeEffec &amp;&amp; activeEffect.<span class="hljs-property">active</span>) &#123;<br>    activeEffect.<span class="hljs-property">deps</span>.<span class="hljs-title function_">push</span>(dep)<br>    dep.<span class="hljs-title function_">add</span>(activeEffect)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+              </div>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/03/12/3.%20%E5%AE%9E%E7%8E%B0%20effect%20%E7%9A%84%20scheduler%20%E5%8A%9F%E8%83%BD/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">03 - 实现 effect 的 scheduler 功能</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/03/12/2.%20%E5%AE%9E%E7%8E%B0%20effect%20%E8%BF%94%E5%9B%9E%20runner/">
+                        <span class="hidden-mobile">02 - 实现 effect 返回 runner</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+    
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
